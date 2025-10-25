@@ -1,0 +1,3 @@
+# Ignore artifacts:
+components/ai-elements
+components/ui
