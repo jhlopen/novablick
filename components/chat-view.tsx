@@ -61,7 +61,11 @@ interface Dataset {
   createdAt: string;
 }
 
-export const ChatView = () => {
+interface ChatViewProps {
+  onDatasetUploaded?: () => void;
+}
+
+export const ChatView = ({ onDatasetUploaded }: ChatViewProps = {}) => {
   const [input, setInput] = useState("");
   const { messages, sendMessage, status, regenerate } = useChat();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -127,6 +131,9 @@ export const ChatView = () => {
 
           // Refresh datasets list
           await fetchDatasets();
+
+          // Notify parent component to refresh its dataset list
+          onDatasetUploaded?.();
         } else {
           console.error(`Upload failed: ${file.name}`, result.error);
         }
@@ -322,9 +329,9 @@ export const ChatView = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 relative size-full h-screen">
-      <div className="flex flex-col h-full">
-        <Conversation className="h-full">
+    <div className="relative flex h-full w-full flex-col">
+      <div className="mx-auto flex h-full w-full max-w-4xl flex-col p-6">
+        <Conversation className="flex-1">
           <ConversationContent>
             {messages.map((message, messageIndex) => (
               <div key={message.id}>
@@ -388,7 +395,7 @@ export const ChatView = () => {
 
         <PromptInput
           onSubmit={handleSubmit}
-          className="mt-4"
+          className="mt-4 shrink-0"
           globalDrop
           multiple
         >
