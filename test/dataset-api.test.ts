@@ -29,7 +29,8 @@ vi.mock("@/lib/db", () => {
       position: 0,
       dataType: "integer",
       nullRatio: 0,
-      uniqueValues: 100,
+      uniqueValues: ["1", "2", "3"],
+      uniqueValueCount: 100,
       metadata: { sampleValues: ["1", "2", "3"] },
     },
     {
@@ -39,7 +40,8 @@ vi.mock("@/lib/db", () => {
       position: 1,
       dataType: "string",
       nullRatio: 0.02,
-      uniqueValues: 98,
+      uniqueValues: ["John", "Jane", "Bob"],
+      uniqueValueCount: 98,
       metadata: { sampleValues: ["John", "Jane", "Bob"] },
     },
     {
@@ -49,7 +51,8 @@ vi.mock("@/lib/db", () => {
       position: 2,
       dataType: "string",
       nullRatio: 0.05,
-      uniqueValues: 95,
+      uniqueValues: ["john@example.com", "jane@example.com"],
+      uniqueValueCount: 95,
       metadata: {
         sampleValues: ["john@example.com", "jane@example.com"],
       },

@@ -45,7 +45,8 @@ export const datasetColumns = pgTable(
     position: integer("position").notNull(), // Column order in CSV
     dataType: varchar("data_type", { length: 50 }).notNull(), // 'string', 'number', 'boolean', 'date', etc.
     nullRatio: real("null_ratio").default(0), // Ratio of null values (0.0 to 1.0, where 1.0 = 100% null)
-    uniqueValues: integer("unique_values"), // Number of unique values (useful for stats)
+    uniqueValues: jsonb("unique_values"), // Unique values (limited to first 100 insertions)
+    uniqueValueCount: integer("unique_value_count"), // Total count of unique values
     metadata: jsonb("metadata"), // Store column-specific metadata (e.g., min, max, avg for numbers)
   },
   (table) => ({

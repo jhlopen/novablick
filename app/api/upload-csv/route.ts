@@ -166,8 +166,8 @@ export async function processCSVStream(
         // Track total count for null ratio calculation
         colInfo.totalCount++;
 
-        // Track unique values (limit to 1000 for memory)
-        if (colInfo.uniqueValues.size < 1000) {
+        // Track unique values (limit to 100 for memory)
+        if (colInfo.uniqueValues.size < 100) {
           colInfo.uniqueValues.add(value);
         }
 
@@ -278,7 +278,10 @@ export async function processCSVStream(
       nullRatio:
         colInfo.totalCount > 0 ? colInfo.nullCount / colInfo.totalCount : 0,
       uniqueValues:
-        colInfo.uniqueValues.size >= 1000 ? null : colInfo.uniqueValues.size,
+        colInfo.uniqueValues.size >= 100
+          ? null
+          : Array.from(colInfo.uniqueValues),
+      uniqueValueCount: colInfo.uniqueValues.size,
       metadata: {
         sampleValues: colInfo.sampleValues.slice(0, 5),
       },

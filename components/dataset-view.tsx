@@ -224,14 +224,15 @@ export const DatasetView = ({ datasetId }: DatasetViewProps) => {
                     </span>
                   </div>
 
-                  {column.uniqueValues !== null && (
-                    <div className="flex justify-between">
-                      <span>Unique:</span>
-                      <span className="font-medium">
-                        {column.uniqueValues.toLocaleString()}
-                      </span>
-                    </div>
-                  )}
+                  {column.uniqueValueCount !== null &&
+                    column.uniqueValueCount !== undefined && (
+                      <div className="flex justify-between">
+                        <span>Unique:</span>
+                        <span className="font-medium">
+                          {column.uniqueValueCount.toLocaleString()}
+                        </span>
+                      </div>
+                    )}
 
                   {column.metadata?.sampleValues &&
                     column.metadata.sampleValues.length > 0 && (
