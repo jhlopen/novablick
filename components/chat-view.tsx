@@ -24,7 +24,9 @@ import {
   useRef,
   useEffect,
   HTMLAttributes,
-  useLayoutEffect,
+  useMemo,
+  useCallback,
+  memo,
 } from "react";
 import { useChat } from "@ai-sdk/react";
 import { Response } from "@/components/ai-elements/response";
@@ -51,6 +53,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { InputGroupAddon } from "@/components/ui/input-group";
+import { FilterPanel, FilterState } from "@/components/filter-panel";
 
 interface Dataset {
   id: string;
@@ -72,6 +75,99 @@ export const ChatView = ({ onDatasetUploaded }: ChatViewProps = {}) => {
   const [uploadingFiles, setUploadingFiles] = useState<string[]>([]);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
+  const [currentFilters, setCurrentFilters] = useState<FilterState>({});
+
+  // Memoize dataset IDs to prevent unnecessary FilterPanel rerenders
+  const selectedDatasetIds = useMemo(
+    () => selectedDatasets.map((d) => d.id),
+    [selectedDatasets],
+  );
+
+  // Memoize callbacks to prevent unnecessary FilterPanel rerenders
+  const handleCloseFilterPanel = useCallback(() => {
+    setSelectedDatasets([]);
+  }, []);
+
+  // Memoize the conversation content to prevent rerender on input changes
+  const conversationContent = useMemo(
+    () => (
+      <Conversation className="flex-1">
+        <ConversationContent>
+          {messages.map((message, messageIndex) => (
+            <div key={message.id}>
+              {message.parts.map((part, i) => {
+                switch (part.type) {
+                  case "text":
+                    return (
+                      <Fragment key={`${message.id}-${i}`}>
+                        <Message from={message.role}>
+                          <MessageContent>
+                            <Response>{part.text}</Response>
+                          </MessageContent>
+                        </Message>
+                        {message.role === "assistant" && (
+                          <Actions className="mt-2">
+                            {messageIndex === messages.length - 1 && (
+                              <Action
+                                onClick={() => regenerate()}
+                                label="Retry"
+                              >
+                                <RefreshCcwIcon className="size-3" />
+                              </Action>
+                            )}
+                            <Action
+                              onClick={() =>
+                                navigator.clipboard.writeText(part.text)
+                              }
+                              label="Copy"
+                            >
+                              <CopyIcon className="size-3" />
+                            </Action>
+                          </Actions>
+                        )}
+                      </Fragment>
+                    );
+                  case "reasoning":
+                    return (
+                      <Reasoning
+                        key={`${message.id}-${i}`}
+                        className="w-full"
+                        isStreaming={
+                          status === "streaming" &&
+                          i === message.parts.length - 1 &&
+                          message.id === messages.at(-1)?.id
+                        }
+                      >
+                        <ReasoningTrigger />
+                        <ReasoningContent>{part.text}</ReasoningContent>
+                      </Reasoning>
+                    );
+                  default:
+                    return null;
+                }
+              })}
+            </div>
+          ))}
+          {status === "submitted" && <Loader />}
+        </ConversationContent>
+        <ConversationScrollButton />
+      </Conversation>
+    ),
+    [messages, status, regenerate],
+  );
+
+  // Memoize handleInputChange to have a stable reference
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setInput(e.target.value);
+    },
+    [],
+  );
+
+  // Memoize remove dataset callback
+  const handleRemoveDataset = useCallback((id: string) => {
+    setSelectedDatasets((prev) => prev.filter((d) => d.id !== id));
+  }, []);
 
   const fetchDatasets = async () => {
     try {
@@ -95,9 +191,17 @@ export const ChatView = ({ onDatasetUploaded }: ChatViewProps = {}) => {
       return;
     }
 
-    sendMessage({
-      text: message.text,
-    });
+    sendMessage(
+      {
+        text: message.text,
+      },
+      {
+        body: {
+          datasets: selectedDatasets.map((d) => ({ id: d.id, name: d.name })),
+          filters: currentFilters,
+        },
+      },
+    );
     setInput("");
   };
 
@@ -162,11 +266,13 @@ export const ChatView = ({ onDatasetUploaded }: ChatViewProps = {}) => {
 
   type PromptInputDatasetProps = HTMLAttributes<HTMLDivElement> & {
     dataset: Dataset;
+    onRemove?: (id: string) => void;
     className?: string;
   };
 
-  function PromptInputDataset({
+  const PromptInputDataset = memo(function PromptInputDataset({
     dataset,
+    onRemove,
     className,
     ...props
   }: PromptInputDatasetProps) {
@@ -196,23 +302,21 @@ export const ChatView = ({ onDatasetUploaded }: ChatViewProps = {}) => {
             </TooltipContent>
           </Tooltip>
         </div>
-        <Button
-          aria-label="Remove dataset"
-          className="-right-1.5 -top-1.5 absolute h-6 w-6 rounded-full opacity-0 group-hover:opacity-100"
-          onClick={() =>
-            setSelectedDatasets((prev) =>
-              prev.filter((d) => d.id !== dataset.id),
-            )
-          }
-          size="icon"
-          type="button"
-          variant="outline"
-        >
-          <XIcon className="h-3 w-3" />
-        </Button>
+        {onRemove && (
+          <Button
+            aria-label="Remove dataset"
+            className="-right-1.5 -top-1.5 absolute h-6 w-6 rounded-full opacity-0 group-hover:opacity-100"
+            onClick={() => onRemove(dataset.id)}
+            size="icon"
+            type="button"
+            variant="outline"
+          >
+            <XIcon className="h-3 w-3" />
+          </Button>
+        )}
       </div>
     );
-  }
+  });
 
   type PromptInputUploadingFileProps = HTMLAttributes<HTMLDivElement> & {
     id: string;
@@ -220,7 +324,7 @@ export const ChatView = ({ onDatasetUploaded }: ChatViewProps = {}) => {
     className?: string;
   };
 
-  function PromptInputUploadingFile({
+  const PromptInputUploadingFile = memo(function PromptInputUploadingFile({
     id,
     file,
     className,
@@ -254,44 +358,25 @@ export const ChatView = ({ onDatasetUploaded }: ChatViewProps = {}) => {
         </div>
       </div>
     );
-  }
+  });
 
   type PromptInputDatasetsProps = Omit<
     HTMLAttributes<HTMLDivElement>,
     "children"
-  >;
+  > & {
+    datasets: Dataset[];
+    uploadingFilesList: string[];
+    onRemove: (id: string) => void;
+  };
 
-  function PromptInputDatasets({
+  const PromptInputDatasets = memo(function PromptInputDatasets({
     className,
+    datasets,
+    uploadingFilesList,
+    onRemove,
     ...props
   }: PromptInputDatasetsProps) {
-    const [height, setHeight] = useState(0);
-    const contentRef = useRef<HTMLDivElement>(null);
-
-    useLayoutEffect(() => {
-      const el = contentRef.current;
-      if (!el) {
-        return;
-      }
-      const ro = new ResizeObserver(() => {
-        setHeight(el.getBoundingClientRect().height);
-      });
-      ro.observe(el);
-      setHeight(el.getBoundingClientRect().height);
-      return () => ro.disconnect();
-    }, []);
-
-    // Force height measurement when datasets or uploading files change
-    useLayoutEffect(() => {
-      const el = contentRef.current;
-      if (!el) {
-        return;
-      }
-      setHeight(el.getBoundingClientRect().height);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedDatasets.length, uploadingFiles.length]);
-
-    if (selectedDatasets.length + uploadingFiles.length === 0) {
+    if (datasets.length + uploadingFilesList.length === 0) {
       return null;
     }
 
@@ -299,169 +384,123 @@ export const ChatView = ({ onDatasetUploaded }: ChatViewProps = {}) => {
       <InputGroupAddon
         align="block-start"
         aria-live="polite"
-        className={cn(
-          "overflow-hidden transition-[height] duration-200 ease-out",
-          className,
-        )}
-        style={{
-          height: selectedDatasets.length + uploadingFiles.length ? height : 0,
-        }}
+        className={cn(className)}
         {...props}
       >
-        <div className="space-y-2 py-1" ref={contentRef}>
-          <div className="flex flex-wrap gap-2">
-            {selectedDatasets.map((dataset) => (
-              <PromptInputDataset key={dataset.id} dataset={dataset} />
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {uploadingFiles.map((file, i) => (
-              <PromptInputUploadingFile
-                key={`${file}-${i}`}
-                id={`${file}-${i}`}
-                file={file}
-              />
-            ))}
-          </div>
+        <div className="space-y-2 py-1">
+          {datasets.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {datasets.map((dataset) => (
+                <PromptInputDataset
+                  key={dataset.id}
+                  dataset={dataset}
+                  onRemove={onRemove}
+                />
+              ))}
+            </div>
+          )}
+          {uploadingFilesList.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {uploadingFilesList.map((file, i) => (
+                <PromptInputUploadingFile
+                  key={`${file}-${i}`}
+                  id={`${file}-${i}`}
+                  file={file}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </InputGroupAddon>
     );
-  }
+  });
 
   return (
-    <div className="relative flex h-full w-full flex-col">
-      <div className="mx-auto flex h-full w-full max-w-4xl flex-col p-6">
-        <Conversation className="flex-1">
-          <ConversationContent>
-            {messages.map((message, messageIndex) => (
-              <div key={message.id}>
-                {message.parts.map((part, i) => {
-                  switch (part.type) {
-                    case "text":
-                      return (
-                        <Fragment key={`${message.id}-${i}`}>
-                          <Message from={message.role}>
-                            <MessageContent>
-                              <Response>{part.text}</Response>
-                            </MessageContent>
-                          </Message>
-                          {message.role === "assistant" && (
-                            <Actions className="mt-2">
-                              {messageIndex === messages.length - 1 && (
-                                <Action
-                                  onClick={() => regenerate()}
-                                  label="Retry"
-                                >
-                                  <RefreshCcwIcon className="size-3" />
-                                </Action>
-                              )}
-                              <Action
-                                onClick={() =>
-                                  navigator.clipboard.writeText(part.text)
-                                }
-                                label="Copy"
-                              >
-                                <CopyIcon className="size-3" />
-                              </Action>
-                            </Actions>
-                          )}
-                        </Fragment>
-                      );
-                    case "reasoning":
-                      return (
-                        <Reasoning
-                          key={`${message.id}-${i}`}
-                          className="w-full"
-                          isStreaming={
-                            status === "streaming" &&
-                            i === message.parts.length - 1 &&
-                            message.id === messages.at(-1)?.id
-                          }
-                        >
-                          <ReasoningTrigger />
-                          <ReasoningContent>{part.text}</ReasoningContent>
-                        </Reasoning>
-                      );
-                    default:
-                      return null;
-                  }
-                })}
-              </div>
-            ))}
-            {status === "submitted" && <Loader />}
-          </ConversationContent>
-          <ConversationScrollButton />
-        </Conversation>
+    <div className="relative flex h-full w-full flex-row overflow-hidden border-t">
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="mx-auto flex h-full w-full max-w-4xl flex-col p-6">
+          {conversationContent}
 
-        <PromptInput
-          onSubmit={handleSubmit}
-          className="mt-4 shrink-0"
-          globalDrop
-          multiple
-        >
-          <PromptInputBody>
-            <PromptInputDatasets />
-            <PromptInputTextarea
-              onChange={(e) => setInput(e.target.value)}
-              value={input}
-            />
-          </PromptInputBody>
-          <PromptInputFooter>
-            <PromptInputTools>
-              <PromptInputActionMenu>
-                <PromptInputActionMenuTrigger />
-                <PromptInputActionMenuContent>
-                  {datasets.length > 0 && (
-                    <>
-                      {datasets.map((dataset) => {
-                        const isSelected = selectedDatasets.some(
-                          (d) => d.id === dataset.id,
-                        );
-                        return (
-                          <PromptInputActionMenuItem
-                            key={dataset.id}
-                            onClick={() => {
-                              setSelectedDatasets((prev) =>
-                                isSelected
-                                  ? prev.filter((d) => d.id !== dataset.id)
-                                  : [...prev, dataset],
-                              );
-                            }}
-                          >
-                            {isSelected ? (
-                              <CheckIcon className="mr-2 size-4" />
-                            ) : (
-                              <FileSpreadsheetIcon className="mr-2 size-4" />
-                            )}
-                            {dataset.name}
-                          </PromptInputActionMenuItem>
-                        );
-                      })}
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
-                  <PromptInputActionMenuItem onClick={handleUploadClick}>
-                    <UploadIcon className="mr-2 size-4" />
-                    Upload CSV files
-                  </PromptInputActionMenuItem>
-                </PromptInputActionMenuContent>
-              </PromptInputActionMenu>
-            </PromptInputTools>
-            <PromptInputSubmit
-              disabled={uploadingFiles.length > 0 || (!input && !status)}
-              status={status}
-            />
-          </PromptInputFooter>
-        </PromptInput>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".csv,text/csv"
-          multiple
-          onChange={(e) => handleFileUpload(e.target.files)}
-          style={{ display: "none" }}
-        />
+          <PromptInput
+            onSubmit={handleSubmit}
+            className="mt-4 shrink-0"
+            globalDrop
+            multiple
+          >
+            <PromptInputBody>
+              <PromptInputDatasets
+                datasets={selectedDatasets}
+                uploadingFilesList={uploadingFiles}
+                onRemove={handleRemoveDataset}
+              />
+              <PromptInputTextarea onChange={handleInputChange} value={input} />
+            </PromptInputBody>
+            <PromptInputFooter>
+              <PromptInputTools>
+                <PromptInputActionMenu>
+                  <PromptInputActionMenuTrigger />
+                  <PromptInputActionMenuContent>
+                    {datasets.length > 0 && (
+                      <>
+                        {datasets.map((dataset) => {
+                          const isSelected = selectedDatasets.some(
+                            (d) => d.id === dataset.id,
+                          );
+                          return (
+                            <PromptInputActionMenuItem
+                              key={dataset.id}
+                              onClick={() => {
+                                setSelectedDatasets((prev) =>
+                                  isSelected
+                                    ? prev.filter((d) => d.id !== dataset.id)
+                                    : [...prev, dataset],
+                                );
+                              }}
+                            >
+                              {isSelected ? (
+                                <CheckIcon className="mr-2 size-4" />
+                              ) : (
+                                <FileSpreadsheetIcon className="mr-2 size-4" />
+                              )}
+                              {dataset.name}
+                            </PromptInputActionMenuItem>
+                          );
+                        })}
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    <PromptInputActionMenuItem onClick={handleUploadClick}>
+                      <UploadIcon className="mr-2 size-4" />
+                      Upload CSV files
+                    </PromptInputActionMenuItem>
+                  </PromptInputActionMenuContent>
+                </PromptInputActionMenu>
+              </PromptInputTools>
+              <PromptInputSubmit
+                disabled={uploadingFiles.length > 0 || (!input && !status)}
+                status={status}
+              />
+            </PromptInputFooter>
+          </PromptInput>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            multiple
+            onChange={(e) => handleFileUpload(e.target.files)}
+            style={{ display: "none" }}
+          />
+        </div>
       </div>
+
+      {/* Filter Panel - shown on the right when datasets are selected */}
+      {selectedDatasets.length > 0 && (
+        <FilterPanel
+          datasetIds={selectedDatasetIds}
+          onClose={handleCloseFilterPanel}
+          onFiltersChange={setCurrentFilters}
+        />
+      )}
     </div>
   );
 };
