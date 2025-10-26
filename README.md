@@ -2,6 +2,8 @@
 
 An AI-powered data analytics chat application that lets you analyze CSV datasets through natural language conversations.
 
+![Demo](https://raw.githubusercontent.com/jhlopen/novablick/5e78f6118d7288064e847c7686c80e886f94f634/demo.gif)
+
 ## Features
 
 - **Natural Language Data Analysis** - Ask questions about your datasets in plain English and get intelligent responses
