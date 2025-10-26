@@ -29,15 +29,21 @@ podman pull postgres
 podman run -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres
 ```
 
+### Synchronize the database schema
+
+```sh
+pnpm db:push
+```
+
 ### Run the Python code sandbox
 
 ```sh
-uvx mcp-run-python --deps "numpy,pandas,matplotlib"  streamable-http
+uvx mcp-run-python --deps "numpy,pandas,matplotlib" streamable-http
 ```
 
 ### Run the development server
 
-```bash
+```sh
 pnpm dev
 ```
 
