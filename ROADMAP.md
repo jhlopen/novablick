@@ -7,7 +7,7 @@
 - Context window management
 - Detect duplicate file uploads
 - Authentication & Authorization
-- Guardrails
+- Add agent guardrails
 - Upload cancellation
-- Support additonal input format
+- Support additional input format
 - Handle extremely large datasets (e.g. in object storage)
