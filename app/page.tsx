@@ -4,7 +4,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ChatView } from "@/components/chat-view";
 import { DatasetView } from "@/components/dataset-view";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Dataset } from "@/lib/db/schema";
 
 const Home = () => {
@@ -13,7 +13,7 @@ const Home = () => {
     undefined,
   );
 
-  const fetchDatasets = async () => {
+  const fetchDatasets = useCallback(async () => {
     try {
       const response = await fetch("/api/datasets");
       const result = await response.json();
@@ -23,14 +23,24 @@ const Home = () => {
     } catch (error) {
       console.error("Error fetching datasets:", error);
     }
-  };
-
-  useEffect(() => {
-    fetchDatasets();
   }, []);
 
-  // Find active item to determine what view to show
-  const activeItem = datasets.find((item) => item.id === activeDatasetId);
+  useEffect(() => {
+    // Initial data fetch on mount
+    const loadInitialData = async () => {
+      try {
+        const response = await fetch("/api/datasets");
+        const result = await response.json();
+        if (result.success && Array.isArray(result.data)) {
+          setDatasets(result.data);
+        }
+      } catch (error) {
+        console.error("Error fetching datasets:", error);
+      }
+    };
+
+    loadInitialData();
+  }, []);
 
   return (
     <SidebarProvider>

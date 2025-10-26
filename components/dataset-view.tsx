@@ -111,6 +111,7 @@ export const DatasetView = ({ datasetId }: DatasetViewProps) => {
     if (dataset) {
       fetchRows(0, false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataset]);
 
   // Handle scroll for infinite loading

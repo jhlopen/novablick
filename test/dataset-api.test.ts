@@ -93,9 +93,12 @@ vi.mock("@/lib/db", () => {
 
             let orderByCalled = false;
 
-            const whereResult: any = {
+            const whereResult: {
+              limit: ReturnType<typeof vi.fn>;
+              orderBy: ReturnType<typeof vi.fn>;
+            } = {
               // For dataset query: .limit() returns the dataset
-              limit: vi.fn((limitValue) => {
+              limit: vi.fn(() => {
                 if (orderByCalled) {
                   // This is part of a rows query chain: .orderBy().limit().offset()
                   return {
@@ -114,18 +117,22 @@ vi.mock("@/lib/db", () => {
                 // Return an object that can be both:
                 // - A promise (for columns query)
                 // - An object with .limit() method (for rows query)
-                const orderByResult: any = {
+                const orderByResult = {
                   limit: vi.fn(() => ({
                     offset: vi.fn(() => Promise.resolve(mockRows)),
                   })),
                   // Make it thenable so it can be awaited directly (for columns query)
-                  then: (resolve: any) => {
+                  then: <T>(
+                    resolve: (value: typeof mockColumns) => T | PromiseLike<T>,
+                  ) => {
                     return Promise.resolve(mockColumns).then(resolve);
                   },
-                  catch: (reject: any) => {
+                  catch: <T>(
+                    reject: (reason: unknown) => T | PromiseLike<T>,
+                  ) => {
                     return Promise.resolve(mockColumns).catch(reject);
                   },
-                  finally: (onFinally: any) => {
+                  finally: (onFinally: (() => void) | undefined | null) => {
                     return Promise.resolve(mockColumns).finally(onFinally);
                   },
                 };
@@ -169,10 +176,15 @@ describe("GET /api/datasets/[id]", () => {
     const body = await response.json();
 
     expect(body.success).toBe(true);
-    const columns = body.data.columns;
+    const columns = body.data.columns as Array<{
+      name: string;
+      dataType: string;
+      position: number;
+      nullRatio: number;
+    }>;
     expect(columns.length).toBeGreaterThan(0);
 
-    columns.forEach((col: any) => {
+    columns.forEach((col) => {
       expect(col).toHaveProperty("name");
       expect(col).toHaveProperty("dataType");
       expect(col).toHaveProperty("position");
@@ -263,10 +275,14 @@ describe("GET /api/datasets/[id]/rows", () => {
     const body = await response.json();
 
     expect(body.success).toBe(true);
-    const rows = body.data;
+    const rows = body.data as Array<{
+      id: string;
+      rowNumber: number;
+      data: Record<string, unknown>;
+    }>;
     expect(rows.length).toBeGreaterThan(0);
 
-    rows.forEach((row: any) => {
+    rows.forEach((row) => {
       expect(row).toHaveProperty("id");
       expect(row).toHaveProperty("rowNumber");
       expect(row).toHaveProperty("data");
