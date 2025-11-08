@@ -1,6 +1,14 @@
 # Novablick
 
+An AI-powered data analytics chat application that lets you analyze CSV datasets through natural language conversations.
+
 ## Setup
+
+### Configure environment variables
+
+```sh
+cp .env.example .env
+```
 
 ### Run the database
 
@@ -9,9 +17,15 @@ podman pull postgres
 podman run -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres
 ```
 
+### Synchronize the database schema
+
+```sh
+pnpm db:push
+```
+
 ### Run the development server
 
-```bash
+```sh
 pnpm dev
 ```
 
