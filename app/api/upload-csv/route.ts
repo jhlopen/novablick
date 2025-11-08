@@ -172,7 +172,11 @@ export async function processCSVStream(
         }
 
         // Store sample values (first 10)
-        if (colInfo.sampleValues.length < 10) {
+        if (
+          colInfo.sampleValues.length < 10 &&
+          value &&
+          !colInfo.sampleValues.includes(value)
+        ) {
           colInfo.sampleValues.push(value);
         }
 
