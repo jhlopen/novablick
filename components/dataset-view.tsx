@@ -167,7 +167,7 @@ export const DatasetView = ({ datasetId }: DatasetViewProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
+            <div className="grid gap-4 grid-cols-1">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="rounded-lg border p-4">
                   <div className="mb-3 flex items-start justify-between">
@@ -269,7 +269,7 @@ export const DatasetView = ({ datasetId }: DatasetViewProps) => {
           <CardTitle>Column Metadata</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
+          <div className="grid gap-4 grid-cols-1">
             {dataset.columns.map((column) => (
               <div
                 key={column.id}
