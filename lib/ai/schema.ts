@@ -2,9 +2,9 @@ import { z } from "zod";
 
 export const stepSchema = z.object({
   id: z.string(),
-  label: z.enum(["read", "write", "search", "ask"]),
-  description: z.string(),
-  details: z.string(),
+  task: z.string(),
+  instructions: z.string(),
+  tools: z.array(z.enum(["runCode", "queryDataset"])),
 });
 
 export type Step = z.infer<typeof stepSchema>;

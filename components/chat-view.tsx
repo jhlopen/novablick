@@ -34,13 +34,16 @@ import {
 } from "@/components/ai-elements/reasoning";
 import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dataset } from "@/lib/db/schema";
-import { ChatStatus, UIMessage } from "ai";
+import { ChatRequestOptions, ChatStatus, UIMessage } from "ai";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { CustomDataPart } from "@/lib/ai/schema";
 
 interface ChatViewProps {
   messages: UIMessage<unknown, CustomDataPart>[];
-  sendMessage: (message: { text: string }) => void;
+  sendMessage: (
+    message: { text: string },
+    options?: ChatRequestOptions,
+  ) => void;
   status: ChatStatus;
   regenerate: () => void;
   uploadingFiles: string[];
@@ -70,9 +73,16 @@ export const ChatView = ({
       return;
     }
 
-    sendMessage({
-      text: message.text,
-    });
+    sendMessage(
+      {
+        text: message.text,
+      },
+      {
+        body: {
+          selectedDatasets,
+        },
+      },
+    );
     setInput("");
   };
 

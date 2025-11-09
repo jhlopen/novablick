@@ -9,11 +9,17 @@ import {
   stepCountIs,
   streamObject,
   ModelMessage,
+  Tool,
 } from "ai";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { CustomDataPart, Step, stepSchema } from "./schema";
-import { runCode } from "./tools";
+import {
+  runCode,
+  createQueryDatasetTool,
+  TOOL_DESCRIPTIONS,
+} from "@/lib/ai/tools";
+import { Dataset } from "@/lib/db/schema";
 
 const REASONING_MODEL = "gpt-5-nano";
 const NON_REASONING_MODEL = "gpt-4.1";
@@ -56,10 +62,13 @@ Bias towards not asking the user for help if you can find the answer yourself.
 export const streamAgent = async ({
   writer,
   messages,
+  selectedDatasets,
 }: {
   writer: UIMessageStreamWriter<UIMessage<unknown, CustomDataPart>>;
   messages: UIMessage[];
+  selectedDatasets: Dataset[];
 }) => {
+  const selectedFileNames = selectedDatasets.map((dataset) => dataset.fileName);
   const modelMessages: ModelMessage[] = convertToModelMessages(messages).map(
     (message) => {
       if (message.role === "assistant" && !message.providerOptions) {
@@ -93,8 +102,12 @@ export const streamAgent = async ({
       requiresPlanning: z.boolean(),
       reasoning: z.string(),
     }),
-    system:
-      "Determine if this query requires multi-step planning or can be answered directly. Simple queries (greetings, clarifications, calculations) don't need planning. Complex queries (data analysis, multi-step reasoning) do.",
+    system: `Determine if this query requires multi-step planning or can be answered directly. Simple queries (greetings, clarifications, calculations) don't need planning. Complex queries (data analysis, multi-step reasoning) do.${
+      selectedFileNames.length > 0
+        ? ` The following datasets are selected by the user: ${selectedFileNames.join(", ")}.
+        Unless explicitly mentioned, assume the user's query is about the selected datasets.`
+        : ""
+    }`,
   });
   writer.write({
     type: "reasoning-delta",
@@ -123,13 +136,21 @@ export const streamAgent = async ({
 
   // Step 2b: Generate plan
   console.info("Step 2: Generate a plan");
+  const allowedDatasetIds = selectedDatasets.map((dataset) => dataset.id);
+  const queryDataset = createQueryDatasetTool(allowedDatasetIds);
+  const availableTools = { runCode, queryDataset };
   const { elementStream } = streamObject({
     model: openai(REASONING_MODEL),
     output: "array",
     messages: modelMessages,
     schema: stepSchema,
-    system:
-      "Create a plan to solve the user's query. Break down the query into multiple steps. Keep the details and descriptions concise and to the point.",
+    system: `Create an execution plan to solve the user's query. Break down the execution into multiple steps. Keep the details and descriptions concise and to the point. ${selectedFileNames.length > 0 ? `The following datasets are selected and are can be queried with the tool 'queryDataset': ${selectedFileNames.join(", ")}. ` : ""}Assign the following tools to each step if necessary:
+    ${Object.keys(availableTools)
+      .map(
+        (tool) => `Tool name: ${tool}
+      Tool description: ${TOOL_DESCRIPTIONS[tool as keyof typeof TOOL_DESCRIPTIONS]}`,
+      )
+      .join("\n\n")}`,
   });
   const planId = uuidv4();
   const steps: Step[] = [];
@@ -150,7 +171,7 @@ export const streamAgent = async ({
   // Step 3: Execute each step in the plan
   console.info("Step 3: Execute each step in the plan");
   for (const step of steps) {
-    console.info(`Executing step: ${step.label}`);
+    console.info(`Executing step: ${step.task}`);
     const stepId = uuidv4();
     writer.write({
       type: "data-completedStepDataPart",
@@ -158,11 +179,22 @@ export const streamAgent = async ({
       id: stepId,
     });
 
+    const tools = step.tools.reduce(
+      (acc, toolName) => {
+        if (toolName in availableTools) {
+          acc[toolName] =
+            availableTools[toolName as keyof typeof availableTools];
+        }
+        return acc;
+      },
+      {} as Record<string, Tool>,
+    );
+
     const result = await generateText({
       model: openai(REASONING_MODEL),
       messages: modelMessages,
-      system: `Execute this step: ${step.description}. Details: ${step.details}`,
-      tools: { runCode },
+      system: `Execute this step: ${step.task}. Instructions: ${step.instructions} ${step.tools.length > 0 ? "Use all provided tools intelligently to complete the task." : ""}`,
+      tools,
       stopWhen: stepCountIs(5),
     });
 

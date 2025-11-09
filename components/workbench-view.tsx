@@ -52,9 +52,9 @@ export const WorkbenchView = ({
       type: "plan",
       position: { x: 0, y: 0 },
       data: {
-        label: step.label,
-        description: step.description,
-        details: step.details,
+        task: step.task,
+        tools: step.tools.length > 0 ? `Tools: ${step.tools.join(", ")}` : "",
+        instructions: step.instructions,
         handles: {
           target: i > 0 ? true : false,
           source: i < steps.length - 1 ? true : false,

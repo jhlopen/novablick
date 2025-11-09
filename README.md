@@ -64,7 +64,7 @@ sequenceDiagram
 
     loop For each step
         P->>E: Execute step
-        E->>T: Call tools (Python/Data)
+        E->>T: Call tools (runCode/queryDataset)
         T-->>E: Return results
         E->>U: Stream progress
     end
@@ -74,14 +74,28 @@ sequenceDiagram
     A->>U: Final answer with insights
 ```
 
-### Python Code Execution
+### Available Tools
 
-The agent can execute Python code using Pyodide (Python in the browser):
+The agent has access to two tools during execution:
+
+#### 1. Python Code Execution (`runCode`)
+
+Execute Python code using Pyodide (Python in the browser):
 
 - Support for data analysis libraries
 - Matplotlib visualizations are automatically captured
 - Results are streamed back in real-time
 - Secure execution in Wasm sandbox
+
+#### 2. Dataset Querying (`queryDataset`)
+
+Query CSV datasets using SQL with built-in security:
+
+- Filter, aggregate, and sort data
+- Perform statistical analysis (COUNT, AVG, SUM, etc.)
+- Join multiple columns and create custom calculations
+- Securely limited to read-only SELECT queries on authorized datasets
+- Automatic row limit protection (max 1000 rows per query)
 
 ## Setup
 

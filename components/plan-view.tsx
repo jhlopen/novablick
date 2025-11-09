@@ -27,22 +27,22 @@ const nodeTypes = {
     data,
   }: {
     data: {
-      label: string;
-      description: string;
+      task: string;
+      tools: string;
       handles: { target: boolean; source: boolean };
-      details: string;
+      instructions: string;
     };
   }) => (
     <Node handles={data.handles}>
       <Tooltip>
         <TooltipTrigger asChild>
           <NodeHeader className="pointer-events-auto">
-            <NodeTitle>{data.label}</NodeTitle>
-            <NodeDescription>{data.description}</NodeDescription>
+            <NodeTitle>{data.task}</NodeTitle>
+            <NodeDescription>{data.tools}</NodeDescription>
           </NodeHeader>
         </TooltipTrigger>
         <TooltipContent className="max-w-md" side="right">
-          <p className="text-sm whitespace-pre-wrap">{data.details}</p>
+          <p className="text-sm whitespace-pre-wrap">{data.instructions}</p>
         </TooltipContent>
       </Tooltip>
     </Node>
