@@ -13,6 +13,9 @@ importers:
       "@ai-sdk/react":
         specifier: ^2.0.78
         version: 2.0.78(react@19.2.0)(zod@4.1.12)
+      "@dagrejs/dagre":
+        specifier: ^1.1.8
+        version: 1.1.8
       "@radix-ui/react-avatar":
         specifier: ^1.1.10
         version: 1.1.10(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -91,6 +94,9 @@ importers:
       pg:
         specifier: ^8.16.3
         version: 8.16.3
+      pyodide:
+        specifier: ^0.29.0
+        version: 0.29.0
       react:
         specifier: 19.2.0
         version: 19.2.0
@@ -115,6 +121,9 @@ importers:
       use-stick-to-bottom:
         specifier: ^1.1.1
         version: 1.1.1(react@19.2.0)
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
       zod:
         specifier: ^4.1.12
         version: 4.1.12
@@ -122,6 +131,9 @@ importers:
       "@tailwindcss/postcss":
         specifier: ^4
         version: 4.1.16
+      "@types/dagre":
+        specifier: ^0.7.53
+        version: 0.7.53
       "@types/node":
         specifier: ^20
         version: 20.19.23
@@ -420,6 +432,19 @@ packages:
       {
         integrity: sha512-YslZMgtJUyuMbZ+aKvfF3x1f5liK4mWNxghFRv7jqRR9C3R3fAOGTTKvxXDa2Y1s9zSbcpuO0cAxDYsc9SrXoQ==,
       }
+
+  "@dagrejs/dagre@1.1.8":
+    resolution:
+      {
+        integrity: sha512-5SEDlndt4W/LaVzPYJW+bSmSEZc9EzTf8rJ20WCKvjS5EAZAN0b+x0Yww7VMT4R3Wootkg+X9bUfUxazYw6Blw==,
+      }
+
+  "@dagrejs/graphlib@2.2.4":
+    resolution:
+      {
+        integrity: sha512-mepCf/e9+SKYy1d02/UkvSy6+6MoyXhVxP8lLDfA7BPE1X1d4dR0sZznmbM8/XVJ1GPM+Svnx7Xj6ZweByWUkw==,
+      }
+    engines: { node: ">17.0.0" }
 
   "@drizzle-team/brocli@0.10.2":
     resolution:
@@ -2541,6 +2566,12 @@ packages:
         integrity: sha512-lZXZ9ckh5R8uiFVt8ogUNf+pIrK4EsWrx2Np75WvF/eTpJ0FMHNhjXk8CKEx/+gpHbNQyJWehbFaTvqmHWB3ww==,
       }
 
+  "@types/dagre@0.7.53":
+    resolution:
+      {
+        integrity: sha512-f4gkWqzPZvYmKhOsDnhq/R8mO4UMcKdxZo+i5SCkOU1wvGeHJeUXGIHeE9pnwGyPMDof1Vx5ZQo4nxpeg2TTVQ==,
+      }
+
   "@types/debug@4.1.12":
     resolution:
       {
@@ -2551,6 +2582,12 @@ packages:
     resolution:
       {
         integrity: sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==,
+      }
+
+  "@types/emscripten@1.41.5":
+    resolution:
+      {
+        integrity: sha512-cMQm7pxu6BxtHyqJ7mQZ2kXWV5SLmugybFdHCBbJ5eHzOo6VhBckEgAT3//rP5FwPHNPeEiq4SmQ5ucBwsOo4Q==,
       }
 
   "@types/estree-jsx@1.0.5":
@@ -6125,6 +6162,13 @@ packages:
       }
     engines: { node: ">=6" }
 
+  pyodide@0.29.0:
+    resolution:
+      {
+        integrity: sha512-ObIvsTmcrxAWKg+FT1GjfSdDmQc5CabnYe/nn5BCuhr9BVVITeQ24DBdZuG5B2tIiAZ9YonBpnDB7cmHZyd2Rw==,
+      }
+    engines: { node: ">=18.0.0" }
+
   quansync@0.2.11:
     resolution:
       {
@@ -7025,6 +7069,13 @@ packages:
       }
     hasBin: true
 
+  uuid@13.0.0:
+    resolution:
+      {
+        integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==,
+      }
+    hasBin: true
+
   vfile-location@5.0.3:
     resolution:
       {
@@ -7217,6 +7268,21 @@ packages:
         integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==,
       }
     engines: { node: ">=0.10.0" }
+
+  ws@8.18.3:
+    resolution:
+      {
+        integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==,
+      }
+    engines: { node: ">=10.0.0" }
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: ">=5.0.2"
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
 
   xtend@4.0.2:
     resolution:
@@ -7453,6 +7519,12 @@ snapshots:
   "@chevrotain/types@11.0.3": {}
 
   "@chevrotain/utils@11.0.3": {}
+
+  "@dagrejs/dagre@1.1.8":
+    dependencies:
+      "@dagrejs/graphlib": 2.2.4
+
+  "@dagrejs/graphlib@2.2.4": {}
 
   "@drizzle-team/brocli@0.10.2": {}
 
@@ -8647,11 +8719,15 @@ snapshots:
       "@types/d3-transition": 3.0.9
       "@types/d3-zoom": 3.0.8
 
+  "@types/dagre@0.7.53": {}
+
   "@types/debug@4.1.12":
     dependencies:
       "@types/ms": 2.1.0
 
   "@types/deep-eql@4.0.2": {}
+
+  "@types/emscripten@1.41.5": {}
 
   "@types/estree-jsx@1.0.5":
     dependencies:
@@ -11194,6 +11270,14 @@ snapshots:
 
   punycode@2.3.1: {}
 
+  pyodide@0.29.0:
+    dependencies:
+      "@types/emscripten": 1.41.5
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   quansync@0.2.11: {}
 
   queue-microtask@1.2.3: {}
@@ -11917,6 +12001,8 @@ snapshots:
 
   uuid@11.1.0: {}
 
+  uuid@13.0.0: {}
+
   vfile-location@5.0.3:
     dependencies:
       "@types/unist": 3.0.3
@@ -12057,6 +12143,8 @@ snapshots:
       stackback: 0.0.2
 
   word-wrap@1.2.5: {}
+
+  ws@8.18.3: {}
 
   xtend@4.0.2: {}
 

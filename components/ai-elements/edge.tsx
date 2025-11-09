@@ -43,8 +43,8 @@ const getHandleCoordsByPosition = (
   node: InternalNode<Node>,
   handlePosition: Position
 ) => {
-  // Choose the handle type based on position - Left is for target, Right is for source
-  const handleType = handlePosition === Position.Left ? "target" : "source";
+  // Choose the handle type based on position - Top is for target, Bottom is for source
+  const handleType = handlePosition === Position.Top ? "target" : "source";
 
   const handle = node.internals.handleBounds?.[handleType]?.find(
     (h) => h.position === handlePosition
@@ -87,9 +87,9 @@ const getEdgeParams = (
   source: InternalNode<Node>,
   target: InternalNode<Node>
 ) => {
-  const sourcePos = Position.Right;
+  const sourcePos = Position.Bottom;
   const [sx, sy] = getHandleCoordsByPosition(source, sourcePos);
-  const targetPos = Position.Left;
+  const targetPos = Position.Top;
   const [tx, ty] = getHandleCoordsByPosition(target, targetPos);
 
   return {

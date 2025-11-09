@@ -1,20 +1,32 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { UIMessage, useChat } from "@ai-sdk/react";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { ChatView } from "@/components/chat-view";
-import { WorkbenchView } from "@/components/workbench-view";
+import { WorkbenchTab, WorkbenchView } from "@/components/workbench-view";
 import { Dataset } from "@/lib/db/schema";
+import { CustomDataPart } from "@/lib/ai/schema";
 
 const Home = () => {
+  const { messages, sendMessage, status, regenerate } = useChat<
+    UIMessage<unknown, CustomDataPart>
+  >({
+    onData: ({ data, type }) => {
+      if (type === "data-planDataPart" && data.steps.length > 0) {
+        setTab(WorkbenchTab.PLAN);
+      }
+    },
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingFiles, setUploadingFiles] = useState<string[]>([]);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
+  const [tab, setTab] = useState<string | undefined>();
 
   const fetchDatasets = async () => {
     try {
@@ -35,6 +47,8 @@ const Home = () => {
 
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+
+    setTab((prev) => (!prev ? WorkbenchTab.UPLOADING : prev));
 
     const csvFiles = Array.from(files);
 
@@ -63,6 +77,9 @@ const Home = () => {
 
           // Refresh datasets list
           await fetchDatasets();
+          setTab((prev) =>
+            prev === WorkbenchTab.UPLOADING ? result.data.id : prev,
+          );
         } else {
           console.error(`Upload failed: ${file.name}`, result.error);
         }
@@ -92,18 +109,39 @@ const Home = () => {
   return (
     <div className="flex h-screen w-full">
       <ResizablePanelGroup direction="horizontal">
-        <ResizablePanel defaultSize={30} minSize={30}>
+        <ResizablePanel defaultSize={40} minSize={40}>
           <ChatView
+            messages={messages}
+            sendMessage={sendMessage}
+            status={status}
+            regenerate={regenerate}
             uploadingFiles={uploadingFiles}
             datasets={datasets}
             selectedDatasets={selectedDatasets}
-            setSelectedDatasets={setSelectedDatasets}
+            selectDataset={(dataset) => {
+              setSelectedDatasets((prev) => [...prev, dataset]);
+              setTab(dataset.id);
+            }}
+            deselectDataset={(dataset) => {
+              setSelectedDatasets((prev) => {
+                const datasets = prev.filter((d) => d.id !== dataset.id);
+                setTab(
+                  (datasets.length > 0 && datasets[0].id) ||
+                    (uploadingFiles.length > 0 && WorkbenchTab.UPLOADING) ||
+                    WorkbenchTab.PLAN,
+                );
+                return datasets;
+              });
+            }}
             handleUploadClick={handleUploadClick}
           />
         </ResizablePanel>
         <ResizableHandle />
-        <ResizablePanel minSize={30}>
+        <ResizablePanel minSize={40}>
           <WorkbenchView
+            tab={tab}
+            setTab={setTab}
+            messages={messages}
             uploadingFiles={uploadingFiles}
             selectedDatasets={selectedDatasets}
             setSelectedDatasets={setSelectedDatasets}

@@ -18,8 +18,7 @@ import {
   PromptInputActionMenuItem,
 } from "@/components/ai-elements/prompt-input";
 import { Action, Actions } from "@/components/ai-elements/actions";
-import { Fragment, useState, Dispatch, SetStateAction } from "react";
-import { useChat } from "@ai-sdk/react";
+import { Fragment, useState } from "react";
 import { Response } from "@/components/ai-elements/response";
 import {
   CheckIcon,
@@ -33,27 +32,38 @@ import {
   ReasoningContent,
   ReasoningTrigger,
 } from "@/components/ai-elements/reasoning";
-import { Loader } from "@/components/ai-elements/loader";
 import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dataset } from "@/lib/db/schema";
+import { ChatStatus, UIMessage } from "ai";
+import { Shimmer } from "@/components/ai-elements/shimmer";
+import { CustomDataPart } from "@/lib/ai/schema";
 
 interface ChatViewProps {
+  messages: UIMessage<unknown, CustomDataPart>[];
+  sendMessage: (message: { text: string }) => void;
+  status: ChatStatus;
+  regenerate: () => void;
   uploadingFiles: string[];
   datasets: Dataset[];
   selectedDatasets: Dataset[];
-  setSelectedDatasets: Dispatch<SetStateAction<Dataset[]>>;
+  selectDataset: (dataset: Dataset) => void;
+  deselectDataset: (dataset: Dataset) => void;
   handleUploadClick: () => void;
 }
 
 export const ChatView = ({
+  messages,
+  sendMessage,
+  status,
+  regenerate,
   uploadingFiles,
   datasets,
   selectedDatasets,
-  setSelectedDatasets,
+  selectDataset,
+  deselectDataset,
   handleUploadClick,
 }: ChatViewProps) => {
   const [input, setInput] = useState("");
-  const { messages, sendMessage, status, regenerate } = useChat();
 
   const handleSubmit = (message: PromptInputMessage) => {
     if (uploadingFiles.length > 0 || !message.text) {
@@ -120,13 +130,27 @@ export const ChatView = ({
                           <ReasoningContent>{part.text}</ReasoningContent>
                         </Reasoning>
                       );
+                    case "data-planDataPart":
+                      return messageIndex === messages.length - 1 &&
+                        i === message.parts.length - 1 ? (
+                        <Shimmer key={`${message.id}-${i}`}>
+                          Planning...
+                        </Shimmer>
+                      ) : null;
+                    case "data-completedStepDataPart":
+                      return messageIndex === messages.length - 1 &&
+                        i === message.parts.length - 1 ? (
+                        <Shimmer key={`${message.id}-${i}`}>
+                          Executing...
+                        </Shimmer>
+                      ) : null;
                     default:
                       return null;
                   }
                 })}
               </div>
             ))}
-            {status === "submitted" && <Loader />}
+            {status === "submitted" && <Shimmer>Thinking...</Shimmer>}
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>
@@ -157,13 +181,11 @@ export const ChatView = ({
                         return (
                           <PromptInputActionMenuItem
                             key={dataset.id}
-                            onClick={() => {
-                              setSelectedDatasets((prev) =>
-                                isSelected
-                                  ? prev.filter((d) => d.id !== dataset.id)
-                                  : [...prev, dataset],
-                              );
-                            }}
+                            onClick={
+                              isSelected
+                                ? () => deselectDataset(dataset)
+                                : () => selectDataset(dataset)
+                            }
                           >
                             {isSelected ? (
                               <CheckIcon className="mr-2 size-4" />
