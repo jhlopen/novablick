@@ -1,3 +1,5 @@
+"use client";
+
 import { Dispatch, SetStateAction, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dataset } from "@/lib/db/schema";

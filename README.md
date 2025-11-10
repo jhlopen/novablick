@@ -64,7 +64,7 @@ sequenceDiagram
 
     loop For each step
         P->>E: Execute step
-        E->>T: Call tools (runCode/queryDataset)
+        E->>T: Call tools (runCode/queryDataset/displayChart)
         T-->>E: Return results
         E->>U: Stream progress
     end
@@ -76,7 +76,7 @@ sequenceDiagram
 
 ### Available Tools
 
-The agent has access to two tools during execution:
+The agent has access to five tools during execution:
 
 #### 1. Python Code Execution (`runCode`)
 
@@ -96,6 +96,27 @@ Query CSV datasets using SQL with built-in security:
 - Join multiple columns and create custom calculations
 - Securely limited to read-only SELECT queries on authorized datasets
 - Automatic row limit protection (max 1000 rows per query)
+
+#### 3. Bar Chart Display (`displayBarChart`)
+
+Create interactive bar charts for comparing categorical data:
+
+- Support for multiple data series
+- Responsive design with tooltips
+
+#### 4. Line Chart Display (`displayLineChart`)
+
+Visualize trends and time-series data with line charts:
+
+- Multiple lines for comparison
+- Ideal for tracking changes over time
+
+#### 5. Pie Chart Display (`displayPieChart`)
+
+Show proportional data with pie/donut charts:
+
+- Interactive tooltips
+- Perfect for composition analysis
 
 ## Setup
 

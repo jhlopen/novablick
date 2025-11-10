@@ -37,7 +37,7 @@ const nodeTypes = {
       <Tooltip>
         <TooltipTrigger asChild>
           <NodeHeader className="pointer-events-auto">
-            <NodeTitle>{data.task}</NodeTitle>
+            <NodeTitle className="break-words min-w-0">{data.task}</NodeTitle>
             <NodeDescription>{data.tools}</NodeDescription>
           </NodeHeader>
         </TooltipTrigger>

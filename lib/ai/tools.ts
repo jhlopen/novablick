@@ -1,12 +1,16 @@
-import { tool } from "ai";
+import { tool, UIMessage, UIMessageStreamWriter } from "ai";
 import { loadPyodide } from "pyodide";
 import z from "zod";
 import { db } from "@/lib/db";
 import { sql } from "drizzle-orm";
+import { chartDataPart, CustomDataPart } from "@/lib/ai/schema";
 
 export const TOOL_DESCRIPTIONS = {
   runCode: "Execute Python code.",
   queryDataset: "Query datasets using SQL SELECT queries.",
+  displayBarChart: "Display a bar chart to the user based on the data.",
+  displayLineChart: "Display a line chart to the user based on the data.",
+  displayPieChart: "Display a pie chart to the user based on the data.",
 };
 
 const OUTPUT_HANDLERS = {
@@ -186,6 +190,7 @@ function validateSQLQuery(
 export const createQueryDatasetTool = (allowedDatasetIds: string[]) =>
   tool({
     description: `Query a dataset using SQL SELECT queries.
+    Make sure you sort and filter properly to avoid requiring too many rows.
 
 **Allowed Dataset IDs:** ${allowedDatasetIds.join(", ")}
 
@@ -262,5 +267,175 @@ SELECT data->>'name', (data->>'score')::int FROM dataset_rows WHERE dataset_id =
           rows: null,
         };
       }
+    },
+  });
+
+export const createDisplayBarChartTool = (
+  writer: UIMessageStreamWriter<UIMessage<unknown, CustomDataPart>>,
+) =>
+  tool({
+    description: `Display a bar chart to the user based on the data.
+    The title should be a string with the title of the chart.
+    The description should be a string with the description of the chart.
+
+    Example input (the config must contain the labels for each key in data):
+    \`\`\`
+    {
+      "data": [
+        { "month": "January", "desktop": 186, "mobile": 80 },
+        { "month": "February", "desktop": 305, "mobile": 200 },
+        { "month": "March", "desktop": 237, "mobile": 120 },
+        { "month": "April", "desktop": 73, "mobile": 190 },
+        { "month": "May", "desktop": 209, "mobile": 130 },
+        { "month": "June", "desktop": 214, "mobile": 140 },
+      ],
+      "config": {
+        "desktop": {
+          "label": "Desktop",
+        },
+        "mobile": {
+          "label": "Mobile",
+        },
+        "metadata": {
+          "type": "bar",
+          "title": "Trending up by 5.2%",
+          "description": "Showing a total visitors for the last 6 months",
+        },
+      },
+    }
+    \`\`\``,
+    inputSchema: chartDataPart,
+    execute: async ({ data, config }) => {
+      const { metadata, ...restConfig } = config;
+      const updatedConfig = {
+        ...restConfig,
+        metadata: { ...metadata, type: "bar" as const },
+      };
+      writer.write({
+        type: "data-chartDataPart",
+        data: {
+          data,
+          config: updatedConfig as typeof config,
+        },
+      });
+      return "Chart displayed successfully.";
+    },
+  });
+
+export const createDisplayLineChartTool = (
+  writer: UIMessageStreamWriter<UIMessage<unknown, CustomDataPart>>,
+) =>
+  tool({
+    description: `Display a line chart to the user based on the data.
+      The title should be a string with the title of the chart.
+      The description should be a string with the description of the chart.
+  
+      Example input (the config must contain the labels for each key in data):
+      \`\`\`
+      {
+        "data": [
+          { "month": "January", "desktop": 186, "mobile": 80 },
+          { "month": "February", "desktop": 305, "mobile": 200 },
+          { "month": "March", "desktop": 237, "mobile": 120 },
+          { "month": "April", "desktop": 73, "mobile": 190 },
+          { "month": "May", "desktop": 209, "mobile": 130 },
+          { "month": "June", "desktop": 214, "mobile": 140 },
+        ],
+        "config": {
+          "desktop": {
+            "label": "Desktop",
+          },
+          "mobile": {
+            "label": "Mobile",
+          },
+          "metadata": {
+            "type": "line",
+            "title": "Trending up by 5.2%",
+            "description": "Showing a total visitors for the last 6 months",
+          },
+        },
+      }
+      \`\`\``,
+    inputSchema: chartDataPart,
+    execute: async ({ data, config }) => {
+      const { metadata, ...restConfig } = config;
+      const updatedConfig = {
+        ...restConfig,
+        metadata: { ...metadata, type: "line" as const },
+      };
+      writer.write({
+        type: "data-chartDataPart",
+        data: {
+          data,
+          config: updatedConfig as typeof config,
+        },
+      });
+      return "Chart displayed successfully.";
+    },
+  });
+
+export const createDisplayPieChartTool = (
+  writer: UIMessageStreamWriter<UIMessage<unknown, CustomDataPart>>,
+) =>
+  tool({
+    description: `Display a pie chart to the user based on the data.
+          The title should be a string with the title of the chart.
+          The description should be a string with the description of the chart.
+
+          The data format is:
+          \`\`\`
+          { "category_key": "category_value", "value_key": "value_value"}
+          \`\`\`
+      
+          Example input (the config must contain the labels for each values (e.g. chrome and safari) and the value key (e.g. visitors). The keys must be consistent across the data rows (e.g. browser and visitors)):
+          \`\`\`
+          {
+            "data": [
+              { "browser": "chrome", "visitors": 275 },
+              { "browser": "safari", "visitors": 200 },
+              { "browser": "firefox", "visitors": 187 },
+              { "browser": "edge", "visitors": 173 },
+              { "browser": "other", "visitors": 90 },
+            ],
+            "config": {
+              "visitors": {
+                "label": "Visitors",
+              },
+              "chrome": {
+                "label": "Chrome",
+              },
+              "safari": {
+                "label": "Safari",
+              },
+              "firefox": {
+                "label": "Firefox",
+              },
+              "edge": {
+                "label": "Edge",
+              },
+              "other": {
+                "label": "Other",
+              },
+              "metadata": {
+                "type": "pie",
+                "title": "Trending up by 5.2%",
+                "description": "Showing a total visitors for the last 6 months",
+              },
+          \`\`\``,
+    inputSchema: chartDataPart,
+    execute: async ({ data, config }) => {
+      const { metadata, ...restConfig } = config;
+      const updatedConfig = {
+        ...restConfig,
+        metadata: { ...metadata, type: "pie" as const },
+      };
+      writer.write({
+        type: "data-chartDataPart",
+        data: {
+          data,
+          config: updatedConfig as typeof config,
+        },
+      });
+      return "Chart displayed successfully.";
     },
   });

@@ -37,6 +37,7 @@ import { Dataset } from "@/lib/db/schema";
 import { ChatRequestOptions, ChatStatus, UIMessage } from "ai";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { CustomDataPart } from "@/lib/ai/schema";
+import { ChartView } from "@/components/chart-view";
 
 interface ChatViewProps {
   messages: UIMessage<unknown, CustomDataPart>[];
@@ -139,6 +140,15 @@ export const ChatView = ({
                           <ReasoningTrigger />
                           <ReasoningContent>{part.text}</ReasoningContent>
                         </Reasoning>
+                      );
+                    case "data-chartDataPart":
+                      return (
+                        <div key={`${message.id}-${i}`} className="p-2">
+                          <ChartView
+                            data={part.data.data}
+                            config={part.data.config}
+                          />
+                        </div>
                       );
                     case "data-planDataPart":
                       return messageIndex === messages.length - 1 &&

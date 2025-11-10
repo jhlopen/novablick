@@ -109,7 +109,7 @@ const Home = () => {
   return (
     <div className="flex h-screen w-full">
       <ResizablePanelGroup direction="horizontal">
-        <ResizablePanel defaultSize={40} minSize={40}>
+        <ResizablePanel defaultSize={45} minSize={30}>
           <ChatView
             messages={messages}
             sendMessage={sendMessage}
@@ -137,7 +137,7 @@ const Home = () => {
           />
         </ResizablePanel>
         <ResizableHandle />
-        <ResizablePanel minSize={40}>
+        <ResizablePanel minSize={30}>
           <WorkbenchView
             tab={tab}
             setTab={setTab}
