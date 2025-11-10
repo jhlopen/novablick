@@ -7,8 +7,7 @@ import { streamAgent } from "@/lib/ai/agents";
 import { CustomDataPart } from "@/lib/ai/schema";
 import { Dataset } from "@/lib/db/schema";
 
-// Allow streaming responses up to 30 seconds
-export const maxDuration = 30;
+export const maxDuration = 60; // 1 minute
 
 export async function POST(req: Request) {
   const {

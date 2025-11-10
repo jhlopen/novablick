@@ -6,8 +6,7 @@ import { eq } from "drizzle-orm";
 import { Readable } from "stream";
 import type { ReadableStream as NodeReadableStream } from "stream/web";
 
-// Allow longer execution time for large file uploads
-export const maxDuration = 300; // 5 minutes
+export const maxDuration = 60; // 1 minute
 
 interface ColumnInfo {
   name: string;
