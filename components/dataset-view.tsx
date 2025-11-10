@@ -193,43 +193,53 @@ export const DatasetView = ({ datasetId }: DatasetViewProps) => {
           </CardHeader>
           <CardContent>
             <div className="overflow-hidden rounded-md border">
-              <div className="h-[600px]">
+              <div className="h-[600px] overflow-auto">
                 {/* Table Header Skeleton */}
-                <div className="sticky top-0 z-10 flex border-b bg-muted/50">
+                <div className="sticky top-0 z-10 flex w-fit min-w-full border-b bg-muted/50">
                   <div className="w-20 shrink-0 border-r px-4 py-3">
                     <Skeleton className="h-4 w-4" />
                   </div>
                   {[...Array(5)].map((_, i) => (
                     <div
                       key={i}
-                      className="min-w-[150px] flex-1 border-r px-4 py-3 last:border-r-0"
-                      style={{ maxWidth: "300px" }}
+                      className="border-r px-4 py-3 last:border-r-0"
+                      style={{
+                        width: "200px",
+                        minWidth: "150px",
+                        maxWidth: "300px",
+                      }}
                     >
                       <Skeleton className="h-4 w-24" />
                     </div>
                   ))}
                 </div>
                 {/* Table Rows Skeleton */}
-                {[...Array(12)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="flex border-b"
-                    style={{ height: ROW_HEIGHT }}
-                  >
-                    <div className="w-20 shrink-0 border-r px-4 py-2">
-                      <Skeleton className="h-4 w-8" />
-                    </div>
-                    {[...Array(5)].map((_, j) => (
-                      <div
-                        key={j}
-                        className="min-w-[150px] flex-1 border-r px-4 py-2 last:border-r-0"
-                        style={{ maxWidth: "300px" }}
-                      >
-                        <Skeleton className="h-4 w-full" />
+                <div className="w-fit min-w-full">
+                  {[...Array(12)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex border-b"
+                      style={{ height: ROW_HEIGHT }}
+                    >
+                      <div className="w-20 shrink-0 border-r px-4 py-2">
+                        <Skeleton className="h-4 w-8" />
                       </div>
-                    ))}
-                  </div>
-                ))}
+                      {[...Array(5)].map((_, j) => (
+                        <div
+                          key={j}
+                          className="border-r px-4 py-2 last:border-r-0"
+                          style={{
+                            width: "200px",
+                            minWidth: "150px",
+                            maxWidth: "300px",
+                          }}
+                        >
+                          <Skeleton className="h-4 w-full" />
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </CardContent>
@@ -353,15 +363,19 @@ export const DatasetView = ({ datasetId }: DatasetViewProps) => {
               {/* Spacer for virtual scrolling */}
               <div style={{ height: totalHeight }}>
                 {/* Table Header */}
-                <div className="sticky top-0 z-10 flex border-b bg-muted/50 backdrop-blur">
+                <div className="sticky top-0 z-10 flex w-fit min-w-full border-b bg-muted/50 backdrop-blur">
                   <div className="flex w-20 shrink-0 items-center border-r px-4 py-3 font-medium text-xs">
                     #
                   </div>
                   {dataset.columns.map((column) => (
                     <div
                       key={column.id}
-                      className="flex min-w-[150px] flex-1 items-center border-r px-4 py-3 font-medium text-xs last:border-r-0"
-                      style={{ maxWidth: "300px" }}
+                      className="flex items-center border-r px-4 py-3 font-medium text-xs last:border-r-0"
+                      style={{
+                        width: "200px",
+                        minWidth: "150px",
+                        maxWidth: "300px",
+                      }}
                     >
                       <span className="truncate">{column.name}</span>
                     </div>
@@ -370,6 +384,7 @@ export const DatasetView = ({ datasetId }: DatasetViewProps) => {
 
                 {/* Virtual Rows */}
                 <div
+                  className="w-fit min-w-full"
                   style={{
                     transform: `translateY(${offsetY}px)`,
                   }}
@@ -386,8 +401,12 @@ export const DatasetView = ({ datasetId }: DatasetViewProps) => {
                       {dataset.columns.map((column) => (
                         <div
                           key={column.id}
-                          className="flex min-w-[150px] flex-1 items-center border-r px-4 py-2 text-xs last:border-r-0"
-                          style={{ maxWidth: "300px" }}
+                          className="flex items-center border-r px-4 py-2 text-xs last:border-r-0"
+                          style={{
+                            width: "200px",
+                            minWidth: "150px",
+                            maxWidth: "300px",
+                          }}
                         >
                           <span className="truncate">
                             {row.data[column.name] || "—"}
