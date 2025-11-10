@@ -2,6 +2,20 @@
 
 An AI-powered data analytics chat application that lets you analyze CSV datasets through natural language conversations.
 
+![Demo](https://raw.githubusercontent.com/jhlopen/novablick/9f87f464abf387106a6c62eaf1faa24f1b104d1c/demo2.gif)
+
+## Features
+
+- **Natural Language Data Analysis** - Ask questions about your datasets in plain English and get intelligent, context-aware responses
+- **CSV Upload & Streaming Processing** - Upload CSV files of any size with efficient batch processing and automatic parsing
+- **Multi-Dataset Support** - Work with multiple CSV files simultaneously and query across datasets in a single conversation
+- **Automated Data Type Inference** - Automatically detects column types (string, number, integer, boolean, date) during upload
+- **SQL Query Generation** - Automatically generates and executes secure SQL SELECT queries based on your questions with built-in injection protection
+- **Python Code Execution** - Run Python data analysis code in the browser using Pyodide
+- **Interactive Visualizations** - Automatically generate bar charts, line charts, and pie charts
+- **Agentic Planning** - Complex queries are intelligently broken down into multi-step execution plans with real-time progress tracking
+- **Virtual Scrolling** - Efficiently view and navigate large datasets with optimized rendering
+
 ## Agentic Workflow
 
 Novablick uses an agentic workflow that autonomously decides how to handle user queries. The workflow adapts based on query complexity:
@@ -76,7 +90,8 @@ sequenceDiagram
 
 ### Available Tools
 
-The agent has access to five tools during execution:
+The agent has access to five tools during execution.
+Chart tools are separated by type (bar, line, pie) with targeted examples, enabling the AI agent to select and generate visualizations more accurately.
 
 #### 1. Python Code Execution (`runCode`)
 
