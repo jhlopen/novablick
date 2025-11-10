@@ -12,7 +12,12 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:build": "docker-compose build",
+    "docker:db:push": "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/novablick drizzle-kit push"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.53",

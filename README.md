@@ -120,29 +120,65 @@ Show proportional data with pie/donut charts:
 
 ## Setup
 
-### Configure environment variables
+### Docker
+
+1. Create .env and add your `OPENAI_API_KEY`
 
 ```sh
 cp .env.example .env
 ```
 
-### Run the database
+2. Start services
 
 ```sh
-podman pull postgres
-podman run -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres
+pnpm install
+pnpm docker:up
 ```
 
-### Synchronize the database schema
+3. Synchronize the database schema
 
 ```sh
+pnpm docker:db:push
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+Other commands:
+
+```sh
+pnpm docker:down      # Stop services
+pnpm docker:logs      # View logs
+pnpm docker:build     # Rebuild images
+pnpm docker:db:push   # Run database migrations
+```
+
+### Local Development
+
+The app runs on host, only the database in Docker.
+
+1. Create .env and add your `OPENAI_API_KEY`
+
+```sh
+cp .env.example .env
+```
+
+2. Run the database
+
+```sh
+docker run -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=novablick -p 5432:5432 postgres
+```
+
+3. Synchronize the database schema
+
+```sh
+pnpm install
 pnpm db:push
 ```
 
-### Run the development server
+4. Run the development server
 
 ```sh
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
