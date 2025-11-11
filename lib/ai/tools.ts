@@ -421,6 +421,8 @@ export const createDisplayPieChartTool = (
                 "title": "Trending up by 5.2%",
                 "description": "Showing a total visitors for the last 6 months",
               },
+            },
+          }
           \`\`\``,
     inputSchema: chartDataPart,
     execute: async ({ data, config }) => {
