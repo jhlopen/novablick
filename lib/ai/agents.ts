@@ -27,12 +27,12 @@ import { Dataset } from "@/lib/db/schema";
 const REASONING_MODEL = "gpt-5-nano";
 const NON_REASONING_MODEL = "gpt-4.1";
 
-const SYSTEM_PROMPT = `You are an agentic data analyst, powered by ${REASONING_MODEL}. You operate in Novablick, a web application for tabular data analysis and visualization.
+const SYSTEM_PROMPT = `You are an agentic data analyst, powered by the best large language model. You operate in Novablick, a web application for tabular data analysis and visualization.
 
 You are assisting a USER to understand their datasets. Each time the USER sends a message, we may automatically attach some information about their current state, such as what datasets they have selected, what they are looking at, and more. This information may or may not be relevant to the user's query, it is up for you to decide. Autonomously decide to the best of your ability before coming back to the user. Bias towards not asking the user for help if you can find the answer yourself.
 
 <communication>
-You are especially knowledgeable about the pharmaceutical industry, e.g. "ACTs" refer to "appropriate comparative therapies". However, do not presume and be data cautious. Be smart and infer the user's intent even if the request do not match exactly the column names.
+You are especially knowledgeable about the pharmaceutical industry, e.g. "ACTs" refer to "appropriate comparative therapies". However, do not presume and make sure to gather the data with the tool \`queryDataset\`. Be smart and infer the user's intent even if the request does not match exactly the column names.
 DO NOT use code e.g. Plotly, Matplotlib, etc. to generate visualizations or ascii charts.
 When displaying data, always use one of the following tools: \`displayBarChart\`, \`displayLineChart\`, \`displayPieChart\`.
 </communication>
@@ -47,7 +47,9 @@ export const streamAgent = async ({
   messages: UIMessage[];
   selectedDatasets: Dataset[];
 }) => {
-  const selectedFileNames = selectedDatasets.map((dataset) => dataset.fileName);
+  const selectedFileNames = selectedDatasets.map(
+    (dataset) => `${dataset.fileName} (id: ${dataset.id})`,
+  );
   const allowedDatasetIds = selectedDatasets.map((dataset) => dataset.id);
   const queryDataset = createQueryDatasetTool(allowedDatasetIds);
   const displayBarChart = createDisplayBarChartTool(writer);
@@ -128,12 +130,12 @@ export const streamAgent = async ({
   // Step 2b: Generate plan
   console.info("Step 2: Generate a plan");
   const { elementStream } = streamObject({
-    model: openai(REASONING_MODEL),
+    model: openai(NON_REASONING_MODEL),
     output: "array",
     messages: modelMessages,
     schema: stepSchema,
     system: `${SYSTEM_PROMPT}
-    Create an execution plan to solve the user's query. Break down the execution into multiple steps. Keep the task name concise without long words. Keep the task instructions to the point. ${selectedFileNames.length > 0 ? `The following datasets are selected and can be queried with the tool 'queryDataset': ${selectedFileNames.join(", ")}. ` : ""}Assign the following tools to each step if necessary:
+    Create an execution plan to solve the user's query. Break down the execution into multiple steps (ideally 3-6 steps). Keep the task name concise without long words. Keep the task instructions to the point. ${selectedFileNames.length > 0 ? `The following datasets are selected and can be queried with the tool 'queryDataset': ${selectedFileNames.join(", ")}. ` : ""}Assign the following tools to each step if necessary:
     ${Object.keys(availableTools)
       .map(
         (tool) => `Tool name: ${tool}
@@ -141,7 +143,7 @@ export const streamAgent = async ({
       )
       .join("\n\n")}
     
-    Always display ONE chart based on the user's query, unless requested otherwise. Keep each step simple with a single tool, but not all tools are required to be used.
+    Always display the most suitable chart based on the user's query, unless requested otherwise. Keep to one tool per step, and not all tools are required.
     Summarize all relevant information for each task as \`context\` so that the subagent has what they need to complete the task.`,
   });
   const planId = uuidv4();
@@ -164,9 +166,10 @@ export const streamAgent = async ({
   if (steps.length === 0) {
     console.info("Respond directly (empty plan)");
     const result = streamText({
-      model: openai(NON_REASONING_MODEL),
+      model: openai(REASONING_MODEL),
       messages: modelMessages,
-      system: SYSTEM_PROMPT,
+      system: `${SYSTEM_PROMPT}
+      Planning was attempted but failed, so please respond directly to the user's query using the available tools as needed.`,
       tools: availableTools,
       stopWhen: stepCountIs(5),
     });
@@ -209,7 +212,10 @@ export const streamAgent = async ({
         Detailed instructions: ${step.instructions}`,
         },
       ],
-      system: `DO NOT ask clarifying questions.${step.tools.length > 0 ? " Use all provided tools intelligently to complete the task." : ""}`,
+      system: `DO NOT ask clarifying questions.
+      DO NOT rely on general knowledge.
+      MUST USE information from the provided context, especially from the previous steps.
+      ${step.tools.length > 0 ? " Use all provided tools intelligently to complete the task." : ""}`,
       tools,
       toolChoice:
         step.tools.length === 1 &&
