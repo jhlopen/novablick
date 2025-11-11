@@ -58,8 +58,8 @@ export const WorkbenchView = ({
         tools: step.tools.length > 0 ? `Tools: ${step.tools.join(", ")}` : "",
         instructions: step.instructions,
         handles: {
-          target: i > 0 ? true : false,
-          source: i < steps.length - 1 ? true : false,
+          target: i > 0,
+          source: i < steps.length - 1,
         },
       },
     }));
