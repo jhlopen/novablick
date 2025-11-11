@@ -11,7 +11,7 @@ An AI-powered data analytics chat application that lets you analyze CSV datasets
 - **Multi-Dataset Support** - Work with multiple CSV files simultaneously and query across datasets in a single conversation
 - **Automated Data Type Inference** - Automatically detects column types (string, number, integer, boolean, date) during upload
 - **SQL Query Generation** - Automatically generates and executes secure SQL SELECT queries based on your questions with built-in injection protection
-- **Python Code Execution** - Run Python data analysis code in the browser using Pyodide
+- **Python Code Execution** - Run Python data analysis code using Pyodide
 - **Interactive Visualizations** - Automatically generate bar charts, line charts, and pie charts
 - **Agentic Planning** - Complex queries are intelligently broken down into multi-step execution plans with real-time progress tracking
 - **Virtual Scrolling** - Efficiently view and navigate large datasets with optimized rendering
@@ -95,7 +95,7 @@ Chart tools are separated by type (bar, line, pie) with targeted examples, enabl
 
 #### 1. Python Code Execution (`runCode`)
 
-Execute Python code using Pyodide (Python in the browser):
+Execute Python code using Pyodide:
 
 - Support for data analysis libraries
 - Matplotlib visualizations are automatically captured
@@ -164,7 +164,6 @@ Other commands:
 pnpm docker:down      # Stop services
 pnpm docker:logs      # View logs
 pnpm docker:build     # Rebuild images
-pnpm docker:db:push   # Run database migrations
 ```
 
 ### Local Development
